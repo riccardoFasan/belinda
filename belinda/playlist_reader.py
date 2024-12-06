@@ -12,28 +12,26 @@ def read_zpl_playlist(local_path: str) -> LocalPlaylist:
     with console.status(f"[bold green]Scanning {local_path}..."):
 
         root: Optional[xml.Element] = xml.parse(local_path).getroot()
-
         if root is None:
-            raise ValueError("Invalid .zpl file.")
+            raise PlaylistReaderError("Invalid .zpl file.")
 
         head: Optional[xml.Element] = root.find("head")
         if head is None:
-            raise ValueError("Invalid .zpl file.")
+            raise PlaylistReaderError("Invalid .zpl file.")
 
         title: Optional[xml.Element] = head.find("title")
         if title is None:
-            raise ValueError("Invalid .zpl file.")
+            raise PlaylistReaderError("Invalid .zpl file.")
 
-        name: Optional[str] = title.text or 'Untitled Playlist'
+        name: Optional[str] = title.text or "Untitled Playlist"
 
         body: Optional[xml.Element] = root.find("body")
-
         if body is None:
-            raise ValueError("Invalid .zpl file.")
+            raise PlaylistReaderError("Invalid .zpl file.")
 
         seq: Optional[xml.Element] = body.find("seq")
         if seq is None:
-            raise ValueError("Invalid .zpl file.")
+            raise PlaylistReaderError("Invalid .zpl file.")
 
         tracks: list[LocalTrack] = []
 
@@ -43,3 +41,9 @@ def read_zpl_playlist(local_path: str) -> LocalPlaylist:
                 tracks.append(LocalTrack(track_path))
 
         return LocalPlaylist(name=name, tracks=tracks)
+
+
+class PlaylistReaderError(ValueError):
+    """Custom error for PlaylistReader"""
+
+    pass

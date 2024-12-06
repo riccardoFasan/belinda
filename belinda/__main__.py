@@ -1,8 +1,8 @@
 """Main"""
 
-from .shell import ask_for_zpl_path, welcome
+from .shell import ask_for_zpl_path, welcome, console
 from .local_playlist import LocalPlaylist
-from .playlist_reader import read_zpl_playlist
+from .playlist_reader import read_zpl_playlist, PlaylistReaderError
 
 
 def main() -> None:
@@ -15,7 +15,10 @@ def main() -> None:
         print(playlist)
 
     except KeyboardInterrupt:
-        print("\n\nInterrupted by user.")
+        console.print("\n\nInterrupted by user.", style="red")
+
+    except PlaylistReaderError:
+        console.print("\n\nInvalid .zpl file.", style="red")
 
 
 if __name__ == "__main__":
