@@ -3,7 +3,7 @@
 from art import tprint
 from rich.console import Console
 from rich.table import Table
-from .filesystem import is_zpl_file
+from .filesystem import is_zpl_file, is_m3u8_file
 from .track_results_diffs import TrackResultDiff
 from . import __version__
 
@@ -19,15 +19,15 @@ def welcome() -> None:
     print(f"version {__version__}\n\n")
 
 
-def ask_for_zpl_path(text: str) -> str:
+def ask_for_zpl_or_m3u8_path(text: str) -> str:
     """
     Ask user for a path, check if is a zpl and return it trailed.
     """
     while True:
         file_path = input(text)
-        if is_zpl_file(file_path):
+        if is_zpl_file(file_path) or is_m3u8_file(file_path):
             return file_path
-        console.print(f"{file_path} is not a valid .zpl file.", style="red")
+        console.print(f"{file_path} is not a valid .zpl or .m3u8 file.", style="red")
 
 
 def ask_for_confirmation(text: str, default=True) -> bool:

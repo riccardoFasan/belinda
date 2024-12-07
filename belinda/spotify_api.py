@@ -91,7 +91,6 @@ def create_or_update_playlist(name: str, tracks: list[SpotifyResult]) -> Optiona
                 existing_playlist = playlist
                 break
 
-
         selected_playlist = existing_playlist or _spotify.user_playlist_create(
             user_id, name, public=False
         )

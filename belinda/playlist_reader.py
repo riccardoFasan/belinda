@@ -9,6 +9,26 @@ from .shell import console
 from .filesystem import is_mp3_file
 
 
+def read_m3u_playlist(playlist_path: str) -> LocalPlaylist:
+    """Reads a .m3u file and returns a LocalPlaylist object."""
+
+    with console.status(f"[bold green]Scanning {playlist_path}..."):
+
+        with open(playlist_path, "r", encoding="utf8") as file:
+            lines = file.readlines()
+
+            name: str = lines[1].replace("#", "").replace(".m3u8", "").strip()
+            tracks: dict[str, LocalTrack] = {}
+
+            for i, line in enumerate(lines):
+                if i > 2:
+                    track_path: str = line.strip()
+                    local_track = _read_local_track(track_path)
+                    tracks[track_path] = local_track
+
+            return LocalPlaylist(name=name, tracks=list(tracks.values()))
+
+
 def read_zpl_playlist(playlist_path: str) -> LocalPlaylist:
     """Reads a .zpl file and returns a LocalPlaylist object."""
 
