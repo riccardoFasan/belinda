@@ -5,6 +5,7 @@ from spotipy import Spotify
 from spotipy.oauth2 import SpotifyOAuth
 from .shell import console
 from .spotify_credentials import SpotifyCredentials
+from .spotify_result import SpotifyResult
 from .local_playlist import LocalTrack
 
 _spotify: Optional[Spotify] = None
@@ -31,7 +32,7 @@ def logout() -> None:
     _spotify = None
 
 
-def search_for_track(track: LocalTrack) -> Optional[str]:
+def search_for_track(track: LocalTrack) -> Optional[SpotifyResult]:
     """Search for a track and return its URI."""
     if _spotify is None:
         raise SpotifyAPIError("Spotify not authenticated.")
@@ -42,9 +43,18 @@ def search_for_track(track: LocalTrack) -> Optional[str]:
 
         query = _build_track_query(track)
 
-        results = _spotify.search(q=query, limit=1)
-        if results["tracks"]["items"]:
-            return results["tracks"]["items"][0]["uri"]
+        res = _spotify.search(q=query, limit=1)
+        if res["tracks"]["items"]:
+            first_res = res["tracks"]["items"][0]
+            if first_res:
+                result = SpotifyResult(
+                    title=first_res["name"],
+                    artist=first_res["artists"][0]["name"],
+                    album=first_res["album"]["name"],
+                    uri=first_res["uri"],
+                    href=first_res["href"],
+                )
+                return result
 
     return None
 

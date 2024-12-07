@@ -1,11 +1,12 @@
 """Main"""
 
-from .shell import ask_for_zpl_path, welcome, console
+from .shell import ask_for_zpl_path, welcome, console, print_comparison_table
 from .local_playlist import LocalPlaylist
 from .playlist_reader import read_zpl_playlist, PlaylistReaderError
 from .env_reader import read_credentials, EnvReaderError
 from .spotify_credentials import SpotifyCredentials
 from .spotify_api import login, logout, search_for_track, SpotifyAPIError
+from .track_results_diffs import TrackResultDiff
 
 
 def main() -> None:
@@ -19,14 +20,13 @@ def main() -> None:
 
         login(credentials)
 
-        for track in playlist.tracks:
-            uri: str = search_for_track(track)
-            if uri is not None:
-                console.print(f"Found: {track.title or track.pathname} -> {uri}")
-            else:
-                console.print(
-                    f"Not Found: {track.title or track.pathname}", style="yellow"
-                )
+        diffs = [
+            TrackResultDiff(track=track, result=search_for_track(track))
+            for track in playlist.tracks
+            if track.title
+        ]
+
+        print_comparison_table(diffs)
 
         logout()
 

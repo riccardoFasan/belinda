@@ -2,6 +2,7 @@
 
 import xml.etree.ElementTree as xml
 from typing import Optional
+from pathlib import Path
 import eyed3
 from .local_playlist import LocalPlaylist, LocalTrack
 from .shell import console
@@ -35,21 +36,22 @@ def read_zpl_playlist(playlist_path: str) -> LocalPlaylist:
         if seq is None:
             raise PlaylistReaderError("Invalid .zpl file.")
 
-        tracks: list[LocalTrack] = []
+        tracks: dict[str, LocalTrack] = {}
 
         for src in seq.findall("media"):
             track_path: Optional[str] = src.get("src")
             if track_path is not None:
-                local_track = _read_local_track(track_path)
-                tracks.append(local_track)
+                if tracks['track_path'] is None:
+                    local_track = _read_local_track(track_path)
+                    tracks['track_path'](local_track)
 
-        return LocalPlaylist(name=name, tracks=tracks)
+        return LocalPlaylist(name=name, tracks=list(tracks.values()))
 
 
 def _read_local_track(track_path: str) -> LocalTrack:
     """Reads a local track and returns a LocalTrack object."""
 
-    pathname: str = track_path.split("/")[-1]
+    pathname: str = Path(track_path).name
     is_mp3: bool = is_mp3_file(track_path)
     if not is_mp3:
         return LocalTrack(

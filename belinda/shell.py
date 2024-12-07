@@ -2,7 +2,9 @@
 
 from art import tprint
 from rich.console import Console
+from rich.table import Table
 from .filesystem import is_zpl_file
+from .track_results_diffs import TrackResultDiff
 from . import __version__
 
 console = Console()
@@ -43,3 +45,21 @@ def ask_for_confirmation(text: str, default=True) -> bool:
         if answer.lower() == "n":
             return False
         console.print("Invalid answer, please type 'y' or 'n'.", style="red")
+
+
+def print_comparison_table(diffs: list[TrackResultDiff]) -> None:
+    """
+    Print results and playlist table.
+    """
+    table = Table(title="Results and Playlist")
+    table.add_column("Playlist Track", header_style="cyan")
+    table.add_column("Spotify Track", header_style="green")
+
+    for diff in diffs:
+        table.add_row(
+            diff.track.pathname,
+            diff.result.title if diff.result else "Not found",
+            style="red" if diff.result is None else None,
+        )
+
+    console.print(table)
