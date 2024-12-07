@@ -84,7 +84,7 @@ def _read_local_track(track_path: str) -> LocalTrack:
 
     audiofile = eyed3.load(track_path)
 
-    if not audiofile:
+    if not audiofile or not audiofile.tag:
         return LocalTrack(
             path=track_path,
             pathname=pathname,
