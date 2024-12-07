@@ -1,5 +1,6 @@
 """Spofify API module."""
 
+from asyncio import get_event_loop, AbstractEventLoop, gather, create_task
 from typing import Optional
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyOAuth
@@ -7,9 +8,13 @@ from .shell import console
 from .spotify_credentials import SpotifyCredentials
 from .spotify_result import SpotifyResult
 from .local_playlist import LocalTrack
+from .track_results_diffs import TrackResultDiff
 
 _spotify: Optional[Spotify] = None
 REDIRECT_URI: str = "http://localhost:8888/callback"
+
+_loop: Optional[AbstractEventLoop] = None
+
 
 
 def login(credentials: SpotifyCredentials) -> None:
@@ -32,31 +37,41 @@ def logout() -> None:
     _spotify = None
 
 
-def search_for_track(track: LocalTrack) -> Optional[SpotifyResult]:
-    """Search for a track and return its URI."""
+async def search_for_tracks(tracks: list[LocalTrack]) -> list[TrackResultDiff]:
+    """Search for tracks and return a list of TrackResultDiff."""
     if _spotify is None:
         raise SpotifyAPIError("Spotify not authenticated.")
 
-    with console.status(
-        f"[bold green]Searching for {track.title or track.pathname}..."
-    ):
+    global _loop
+    _loop = get_event_loop()
 
-        query = _build_track_query(track)
+    with console.status("[bold green]Searching for tracks..."):
+        tasks = [create_task(_search_for_track(track)) for track in tracks]
+        diffs = await gather(*tasks)
+        return diffs
 
-        res = _spotify.search(q=query, limit=1)
-        if res["tracks"]["items"]:
-            first_res = res["tracks"]["items"][0]
-            if first_res:
-                result = SpotifyResult(
-                    title=first_res["name"],
-                    artist=first_res["artists"][0]["name"],
-                    album=first_res["album"]["name"],
-                    uri=first_res["uri"],
-                    href=first_res["href"],
-                )
-                return result
 
-    return None
+async def _search_for_track(track: LocalTrack) -> TrackResultDiff:
+    """Search for a track and return TrackResultDiff."""
+    if _spotify is None:
+        raise SpotifyAPIError("Spotify not authenticated.")
+
+    query = _build_track_query(track)
+
+    res = await _loop.run_in_executor(None, _spotify.search, query, 1)
+    if res["tracks"]["items"]:
+        first_res = res["tracks"]["items"][0]
+        if first_res:
+            result = SpotifyResult(
+                title=first_res["name"],
+                artist=first_res["artists"][0]["name"],
+                album=first_res["album"]["name"],
+                uri=first_res["uri"],
+                href=first_res["href"],
+            )
+            return TrackResultDiff(track=track, result=result)
+
+    return TrackResultDiff(track=track, result=None)
 
 
 def create_playlist(name: str, tracks: list[SpotifyResult]) -> Optional[str]:

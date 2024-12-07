@@ -1,5 +1,5 @@
 """Main"""
-
+from asyncio import run
 from .shell import (
     ask_for_zpl_path,
     welcome,
@@ -14,14 +14,14 @@ from .spotify_credentials import SpotifyCredentials
 from .spotify_api import (
     login,
     logout,
-    search_for_track,
+    search_for_tracks,
     create_playlist,
     SpotifyAPIError,
 )
 from .track_results_diffs import TrackResultDiff
 
 
-def main() -> None:
+async def main() -> None:
     """Main"""
     try:
         welcome()
@@ -32,11 +32,7 @@ def main() -> None:
 
         login(credentials)
 
-        diffs = [
-            TrackResultDiff(track=track, result=search_for_track(track))
-            for track in playlist.tracks
-            if track.title
-        ]
+        diffs: list[TrackResultDiff] = await search_for_tracks(playlist.tracks)
 
         print_comparison_table(diffs)
 
@@ -68,4 +64,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    run(main())
