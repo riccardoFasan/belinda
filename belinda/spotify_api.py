@@ -27,7 +27,7 @@ def login(credentials: SpotifyCredentials) -> None:
                 client_id=credentials.client_id,
                 client_secret=credentials.client_secret,
                 redirect_uri=REDIRECT_URI,
-                scope="playlist-modify-private",
+                scope="playlist-read-private,playlist-modify-private",
             )
         )
 
@@ -81,8 +81,8 @@ def create_or_update_playlist(name: str, tracks: list[SpotifyResult]) -> Optiona
         raise SpotifyAPIError("Spotify not authenticated.")
 
     with console.status(f"[bold green]Creating or updating playlist {name}..."):
-        user = _spotify.me()["id"]
-        playlists = _spotify.user_playlists(user)["items"]
+        user_id = _spotify.me()["id"]
+        playlists = _spotify.user_playlists(user_id)["items"]
 
         existing_playlist = None
 
@@ -91,14 +91,20 @@ def create_or_update_playlist(name: str, tracks: list[SpotifyResult]) -> Optiona
                 existing_playlist = playlist
                 break
 
+
         selected_playlist = existing_playlist or _spotify.user_playlist_create(
-            user, name, public=False
+            user_id, name, public=False
         )
 
         _spotify.playlist_replace_items(selected_playlist["id"], [])
 
-        for i in range(0, len(tracks), PLAYLIST_UPDATE_TRACKS_LIMIT):
-            uris = [track.uri for track in tracks[i : i + PLAYLIST_UPDATE_TRACKS_LIMIT]]
+        filtered_uris = []
+        for track in tracks:
+            if track.uri not in filtered_uris:
+                filtered_uris.append(track.uri)
+
+        for i in range(0, len(filtered_uris), PLAYLIST_UPDATE_TRACKS_LIMIT):
+            uris = [uri for uri in filtered_uris[i : i + PLAYLIST_UPDATE_TRACKS_LIMIT]]
             _spotify.playlist_add_items(selected_playlist["id"], uris)
 
         return selected_playlist["uri"]
