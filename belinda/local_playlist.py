@@ -1,5 +1,6 @@
 """Local playlist models"""
 
+from typing import Optional
 from dataclasses import dataclass
 
 
@@ -10,6 +11,10 @@ class LocalTrack:
     """
 
     path: str
+    pathname: str
+    artist: Optional[str]
+    album: Optional[str]
+    title: Optional[str]
 
 
 @dataclass

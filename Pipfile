@@ -9,6 +9,8 @@ rick = "*"
 rich = "*"
 black = "*"
 python-dotenv = "*"
+spotipy = "*"
+eyed3 = "*"
 
 [dev-packages]
 

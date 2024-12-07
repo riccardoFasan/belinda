@@ -1,6 +1,6 @@
 # Belinda
 
-Private python script created to automate the creation of my private playlists
+Interactive private python script created to automate the creation of my private playlists
 
 ### Spotify Credentials
 
