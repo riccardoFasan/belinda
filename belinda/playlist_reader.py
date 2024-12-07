@@ -41,9 +41,9 @@ def read_zpl_playlist(playlist_path: str) -> LocalPlaylist:
         for src in seq.findall("media"):
             track_path: Optional[str] = src.get("src")
             if track_path is not None:
-                if tracks['track_path'] is None:
+                if track_path not in tracks:
                     local_track = _read_local_track(track_path)
-                    tracks['track_path'](local_track)
+                    tracks[track_path] = local_track
 
         return LocalPlaylist(name=name, tracks=list(tracks.values()))
 
