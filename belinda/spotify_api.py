@@ -59,18 +59,19 @@ def search_for_track(track: LocalTrack) -> Optional[SpotifyResult]:
     return None
 
 
-def create_playlist(name: str, tracks: list[SpotifyResult]) -> None:
+def create_playlist(name: str, tracks: list[SpotifyResult]) -> Optional[str]:
     """Create a playlist on Spotify."""
     if _spotify is None:
         raise SpotifyAPIError("Spotify not authenticated.")
 
     with console.status(f"[bold green]Creating playlist {name}..."):
-        pass
-        # user = _spotify.me()["id"]
-        # playlist = _spotify.user_playlist_create(user, name, public=False)
+        user = _spotify.me()["id"]
+        playlist = _spotify.user_playlist_create(user, name, public=False)
 
-        # uris = [track.uri for track in tracks]
-        # _spotify.playlist_add_items(playlist["id"], uris)
+        uris = [track.uri for track in tracks]
+        _spotify.playlist_add_items(playlist["id"], uris)
+
+        return playlist["uri"]
 
 
 def _build_track_query(track: LocalTrack) -> str:

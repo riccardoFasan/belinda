@@ -46,7 +46,11 @@ def main() -> None:
 
         if should_create_playlist:
             results: list[str] = [diff.result for diff in diffs if diff.result]
-            create_playlist(playlist.name, results)
+            uri = create_playlist(playlist.name, results)
+            if uri:
+                console.print(f"\n\nPlaylist created: {uri}")
+            else:
+                console.print("\n\nPlaylist not created.", style="red")
 
         logout()
 
