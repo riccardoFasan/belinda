@@ -1,4 +1,4 @@
-"""Local playlist dataclasses."""
+"""Local playlist models"""
 
 from dataclasses import dataclass
 

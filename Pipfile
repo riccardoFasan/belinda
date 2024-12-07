@@ -8,6 +8,7 @@ art = "*"
 rick = "*"
 rich = "*"
 black = "*"
+python-dotenv = "*"
 
 [dev-packages]
 

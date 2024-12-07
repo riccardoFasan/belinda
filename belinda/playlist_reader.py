@@ -45,5 +45,3 @@ def read_zpl_playlist(local_path: str) -> LocalPlaylist:
 
 class PlaylistReaderError(ValueError):
     """Custom error for PlaylistReader"""
-
-    pass
