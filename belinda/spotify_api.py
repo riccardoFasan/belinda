@@ -15,6 +15,7 @@ REDIRECT_URI: str = "http://localhost:8888/callback"
 
 _loop: Optional[AbstractEventLoop] = None
 
+PLAYLIST_UPDATE_TRACKS_LIMIT: int = 100
 
 
 def login(credentials: SpotifyCredentials) -> None:
@@ -74,19 +75,33 @@ async def _search_for_track(track: LocalTrack) -> TrackResultDiff:
     return TrackResultDiff(track=track, result=None)
 
 
-def create_playlist(name: str, tracks: list[SpotifyResult]) -> Optional[str]:
-    """Create a playlist on Spotify."""
+def create_or_update_playlist(name: str, tracks: list[SpotifyResult]) -> Optional[str]:
+    """Create or update a playlist on Spotify."""
     if _spotify is None:
         raise SpotifyAPIError("Spotify not authenticated.")
 
-    with console.status(f"[bold green]Creating playlist {name}..."):
+    with console.status(f"[bold green]Creating or updating playlist {name}..."):
         user = _spotify.me()["id"]
-        playlist = _spotify.user_playlist_create(user, name, public=False)
+        playlists = _spotify.user_playlists(user)["items"]
 
-        uris = [track.uri for track in tracks]
-        _spotify.playlist_add_items(playlist["id"], uris)
+        existing_playlist = None
 
-        return playlist["uri"]
+        for playlist in playlists:
+            if playlist["name"] == name:
+                existing_playlist = playlist
+                break
+
+        selected_playlist = existing_playlist or _spotify.user_playlist_create(
+            user, name, public=False
+        )
+
+        _spotify.playlist_replace_items(selected_playlist["id"], [])
+
+        for i in range(0, len(tracks), PLAYLIST_UPDATE_TRACKS_LIMIT):
+            uris = [track.uri for track in tracks[i : i + PLAYLIST_UPDATE_TRACKS_LIMIT]]
+            _spotify.playlist_add_items(selected_playlist["id"], uris)
+
+        return selected_playlist["uri"]
 
 
 def _build_track_query(track: LocalTrack) -> str:

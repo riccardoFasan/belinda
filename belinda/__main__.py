@@ -1,4 +1,5 @@
 """Main"""
+
 from asyncio import run
 from .shell import (
     ask_for_zpl_path,
@@ -15,7 +16,7 @@ from .spotify_api import (
     login,
     logout,
     search_for_tracks,
-    create_playlist,
+    create_or_update_playlist,
     SpotifyAPIError,
 )
 from .track_results_diffs import TrackResultDiff
@@ -42,7 +43,7 @@ async def main() -> None:
 
         if should_create_playlist:
             results: list[str] = [diff.result for diff in diffs if diff.result]
-            uri = create_playlist(playlist.name, results)
+            uri = create_or_update_playlist(playlist.name, results)
             if uri:
                 console.print(f"\n\nPlaylist created: {uri}")
             else:
